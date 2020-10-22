@@ -40,6 +40,19 @@ def req_input(list_possible):
     return action.lower()
 
 
+def req_amount(max_amount):
+    """
+    Request input from user within a list of possible choice.
+    """
+
+    action = input()
+    while int(action) > max_amount:
+        print("wrong input, possible expected values bellow: " +
+              str(max_amount))
+        action = input()
+    return int(action)
+
+
 class Factory():
     """
     As the director of the Factory you will be given report
@@ -52,45 +65,56 @@ class Factory():
         self.last_time = datetime.now()
         
 
-        self.ressource = {"copper": {"prod_rate": 0.1,
+        self.ressource = {"copper": {"prod_rate": 0.5,
                                      "total": 10,
                                      "price": 1},
-                          "iron": {"prod_rate": 0.1,
+                          "iron": {"prod_rate": 0.5,
                                    "total": 10,
                                    "price": 1}
                           }
 
+        self.ascii_factory = load_ascii("ascii_factory.txt")
+
         self.main_factory_choices = {"p": self.print_report,
                                      "s": self.shop,
+                                     "se": self.selling_order,
                                      "sa": self.save_factory,
                                      "l": self.load_factory,
                                      "q": self.gw_quit}
+
     def main_factory(self):
         #   Update of factory values:
         self.update()
 
-        txt = ["", "",
+        txt = ["",
                "You're in your office, what do you want to do?",
                "(P)rint Report",
-               "(S)hop"
+               "(S)hop     (Se)ll",
                "(Sa)ve     (L)oad",
                "(Q)uit"]
-
+        print("")
         print_list(self.ascii_factory)
         print_list(txt)
 
-        action = req_input(self.town_choices)
+        action = req_input(self.main_factory_choices)
         if action == "sa":
             self.save_world()
-            return self.main_town()
+            return self.main_factory()
 
         elif action == "l":
             self.load_world()
-            return self.main_town()
+            return self.main_factory()
+
+        elif action == "p":
+            self.print_report()
+            return self.main_factory()
 
         # Autosave each time the player go back to town and do something else.
         self.autosave()
         return self.main_factory_choices[action]()
+
+    def autosave(self):
+        self.save_factory(autosave=True)
 
     def save_factory(self, autosave=False):
         """
@@ -124,41 +148,49 @@ class Factory():
 
     def update(self):
         time_now = datetime.now()
-        print(time_now - self.last_time)
+        delta = (time_now - self.last_time).total_seconds()
         self.last_time = time_now
+        for r in self.ressource.keys():
+            self.ressource[r]["total"] += delta * self.ressource[r]["prod_rate"]
 
     def print_report(self):
         """
         Use of PrettyTable module to show a list of dragon object.
         """
         x = PrettyTable()
-        x.field_names = ["Ressource", "Production Rate", "Total Amount"]
+        x.field_names = ["Ressource", "Production Rate", "Total Amount","Price"]
 
         for ressource in self.ressource.keys():
-
-        i = 1
-        for d in list_d:
-            x.add_column(str(i),
-                         [d.name,
-                          d.elem_type.capitalize(),
-                          d.level,
-                          round(d.hp),
-                          round(d.mp),
-                          round(d.attack),
-                          round(d.attack_spe),
-                          round(d.defense),
-                          round(d.defense_spe),
-                          d.proficiency])
-            i += 1
+            x.add_row([ressource.capitalize(),
+                       self.ressource[ressource]["prod_rate"],
+                       round(self.ressource[ressource]["total"], 2),
+                       self.ressource[ressource]["price"],
+                       ])
+        print("Money: " + str(self.money))
         print(x)
-        return self.main_factory()
-    
+
     def selling_order(self):
         """
         choose ressource to sell and which amount
         """
-        pass
-    
+        self.update()
+        self.print_report()
+        print("Choose which ressource to sell or (G)o back")
+        res_input = req_input(list(self.ressource.keys())+["g"])
+
+        if res_input == "g":
+            return self.main_factory()
+
+        print("How much " + res_input + " do you want to sell?")
+        res_amount = req_amount(self.ressource[res_input]["total"])
+
+        profit = self.ressource[res_input]["price"] * res_amount
+        self.money += profit
+        self.ressource[res_input]["total"] -= res_amount
+
+        print("You sold " + str(res_amount) + " " + res_input + " at " + str(self.ressource[res_input]["price"]) + " per unit",
+              "for a total of: " + str(profit))
+        return self.main_factory()
 
     def shop(self):
         """
@@ -174,4 +206,4 @@ class Factory():
         print_list(self.ascii_factory)
         print_list(txt)
 if __name__ == "__main__":
-    Factory()
+    Factory().main_factory()
