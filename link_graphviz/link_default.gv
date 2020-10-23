@@ -1,0 +1,17 @@
+digraph default {
+	node [color=lightblue2 style=filled]
+	subgraph iron {
+		node [color=lightgrey rank=min style=filled]
+		iron [shape=box]
+	}
+	subgraph copper {
+		node [color=antiquewhite rank=min style=filled]
+		copper [shape=box]
+	}
+	copper -> copper_plate [label=" 1"]
+	copper_plate -> copper_cable [label=" 1"]
+	iron -> iron_plate [label=" 1"]
+	iron_plate -> iron_gear_wheel [label=" 1"]
+	iron_plate -> circuit [label=" 1"]
+	copper_cable -> circuit [label=" 1"]
+}
