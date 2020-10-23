@@ -201,7 +201,7 @@ class Factory():
 
     def print_report(self):
         """
-        Use of PrettyTable module to show a list of dragon object.
+        Use of PrettyTable module.
         """
         x = PrettyTable()
         x.field_names = ["Ressource", "Production Rate",
@@ -214,7 +214,10 @@ class Factory():
                        self.ressource[ressource]["price"],
                        self.ressource[ressource]["buy_price"]
                        ])
-        print("Money: " + str(self.money))
+        len_mon = len(str(self.money))
+        print("",
+              "+--------" + "-"*len_mon + "-+\n"
+              "| Money: " + str(self.money) + " |")
         print(x)
 
     def selling_order(self):
