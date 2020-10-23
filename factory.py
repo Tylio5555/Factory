@@ -92,6 +92,15 @@ class Factory():
                                    "buy_price": 10}
                           }
 
+        self.adv_ressource = {"copper_plate": {"copper": 1},
+                              "copper_cable": {"components":{"copper_plate": 1}},
+                              "iron_plate": {"iron": 1},
+                              "iron_gear_wheel": {"components":{"iron_plate": 1}
+                                                  "product": 5},
+                              "circuit": {"components":{"iron_plate": 1,
+                                                        "copper_cable": 1}
+                                                  "product": 1}
+
         self.upgrade = {"prod_rate_copper": {"price": 1000,
                                              "prod_rate": 0.5,
                                              "nb_upgrade_done": 0},
