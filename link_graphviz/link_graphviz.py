@@ -8,15 +8,81 @@ Created on Fri Oct 23 13:50:10 2020
 
 import graphviz
 
-adv_ressource = {"copper_plate": {"components": {"copper": 1}},
-                 "copper_cable": {"components": {"copper_plate": 1}},
-                 "iron_plate": {"components": {"iron": 1}},
-                 "iron_gear_wheel": {"components": {"iron_plate": 1},
-                                     "product": 5},
-                 "circuit": {"components": {"iron_plate": 1,
-                                            "copper_cable": 1},
-                             "product": 1}
-                 }
+adv_ressource = {"copper_plate": {"components": {"copper": 1},
+                                               "product": 1,
+                                               "price": 1,
+                                               "rank": 0},
+
+                  "copper_cable": {"components": {"copper_plate": 1},
+                                   "product": 5,
+                                   "price": 1,
+                                   "rank": 1},
+
+                  "iron_plate": {"components": {"iron": 1},
+                                 "product": 1,
+                                 "price": 3,
+                                 "rank": 1},
+
+                  "steel": {"components": {"iron_plate": 1},
+                            "product": 1,
+                            "price": 1,
+                            "rank": 2},
+
+                  "iron_gear_wheel": {"components": {"iron_plate": 1},
+                                      "product": 5,
+                                      "price": 1,
+                                      "rank": 2},
+
+                  "circuit": {"components": {"iron_plate": 1,
+                                             "copper_cable": 1},
+                              "product": 1,
+                              "price": 1,
+                              "rank": 2},
+
+                  "adv_circuit": {"components": {"circuit": 1,
+                                                 "copper_cable": 1,
+                                                 "steel": 1},
+                                  "product": 1,
+                                  "price": 1,
+                                  "rank": 3},
+
+                  "solar_panel": {"components": {"copper_plate": 1,
+                                                 "circuit": 1},
+                                  "product": 1,
+                                  "price": 1,
+                                  "rank": 3},
+                  "low_density_structure": {"components": {"copper_plate": 1,
+                                                           "steel": 1},
+                                            "product": 1,
+                                            "price": 1,
+                                            "rank": 3},
+
+                  "processing_unit": {"components": {"circuit": 1,
+                                                     "adv_circuit": 1},
+                                      "product": 1,
+                                      "price": 1,
+                                      "rank": 4},
+                  "speed_module": {"components": {"circuit": 1,
+                                                  "iron_gear_wheel": 1},
+                                   "product": 1,
+                                   "price": 1,
+                                   "rank": 3},
+                  "rocket_control_unit": {"components": {"processing_unit": 1,
+                                                         "speed_module": 1},
+                                          "product": 1,
+                                          "price": 1,
+                                          "rank": 6},
+                  "rocket_part": {"components": {"rocket_control_unit": 1,
+                                                 "low_density_structure": 1},
+                                  "product": 1,
+                                  "price": 1,
+                                  "rank": 5},
+                  "space_module": {"components": {"rocket_part": 1,
+                                                  "solar_panel": 1},
+                                  "product": 1,
+                                  "price": 1000,
+                                  "rank": 6}
+                  }
 
 
 def link(d_link, name="default", f_name="link_default.gv"):

@@ -9,6 +9,7 @@ Created on Thu Oct 22 14:38:47 2020
 import time
 from datetime import datetime
 import pickle
+import copy
 # Vol honteux de script pour pas faire dl de module
 # from prettytable import PrettyTable
 from prettytable import PrettyTable
@@ -89,17 +90,115 @@ class Factory():
                           "iron": {"prod_rate": 0.5,
                                    "total": 10,
                                    "price": 1,
-                                   "buy_price": 10}
+                                   "buy_price": 10},
+                          "copper_plate": {"prod_rate": 0,
+                                           "total": 0,
+                                           "price": 10,
+                                           "buy_price": 100},
+                          "iron_plate": {"prod_rate": 0,
+                                         "total": 0,
+                                         "price": 10,
+                                         "buy_price": 100},
+                          "copper_cable": {"prod_rate": 0,
+                                           "total": 0,
+                                           "price": 20,
+                                           "buy_price": 10},
+                          "circuit": {"prod_rate": 0,
+                                      "total": 0,
+                                      "price": 100,
+                                      "buy_price": 1000},
+                          "iron_gear_wheel": {"prod_rate": 0,
+                                              "total": 0,
+                                              "price": 10,
+                                              "buy_price": 100}
                           }
 
-        self.adv_ressource = {"copper_plate": {"copper": 1},
-                              "copper_cable": {"components":{"copper_plate": 1}},
-                              "iron_plate": {"iron": 1},
-                              "iron_gear_wheel": {"components":{"iron_plate": 1}
-                                                  "product": 5},
-                              "circuit": {"components":{"iron_plate": 1,
-                                                        "copper_cable": 1}
-                                                  "product": 1}
+        # prod rate st by user
+        self.adv_ressource_prod_rate = {"copper_plate": {"copper": 1},
+                                        "iron_plate": {"iron": 1},
+                                        "copper_cable": {"copper_plate": 1},
+                                        "circuit": {"copper_cable": 1,
+                                                    "iron_plate": 0.5},
+                                        "iron_gear_wheel": {"iron_plate": 0.5}
+                                        }
+
+        # dict of fact
+        # load of json / yml file instead?
+        self.adv_ressource = {"copper_plate": {"components": {"copper": 5},
+                                               "product": 1,
+                                               "price": 1,
+                                               "rank": 0},
+
+                              "copper_cable": {"components": {"copper_plate": 1},
+                                               "product": 5,
+                                               "price": 1,
+                                               "rank": 1},
+
+                              "iron_plate": {"components": {"iron": 5},
+                                             "product": 1,
+                                             "price": 3,
+                                             "rank": 1},
+
+                              "steel": {"components": {"iron_plate": 1},
+                                        "product": 1,
+                                        "price": 1,
+                                        "rank": 2},
+
+                              "iron_gear_wheel": {"components": {"iron_plate": 1},
+                                                  "product": 5,
+                                                  "price": 1,
+                                                  "rank": 2},
+
+                              "circuit": {"components": {"iron_plate": 1,
+                                                         "copper_cable": 1},
+                                          "product": 1,
+                                          "price": 1,
+                                          "rank": 2},
+
+                              "adv_circuit": {"components": {"circuit": 1,
+                                                             "copper_cable": 1,
+                                                             "steel": 1},
+                                              "product": 1,
+                                              "price": 1,
+                                              "rank": 3},
+
+                              "solar_panel": {"components": {"copper_plate": 1,
+                                                             "circuit": 1},
+                                              "product": 1,
+                                              "price": 1,
+                                              "rank": 3},
+                              "low_density_structure": {"components": {"copper_plate": 1,
+                                                                       "steel": 1},
+                                                        "product": 1,
+                                                        "price": 1,
+                                                        "rank": 3},
+
+                              "processing_unit": {"components": {"circuit": 1,
+                                                                 "adv_circuit": 1},
+                                                  "product": 1,
+                                                  "price": 1,
+                                                  "rank": 4},
+                              "speed_module": {"components": {"circuit": 1,
+                                                              "iron_gear_wheel": 1},
+                                               "product": 1,
+                                               "price": 1,
+                                               "rank": 3},
+                              "rocket_control_unit": {"components": {"processing_unit": 1,
+                                                                     "speed_module": 1},
+                                                      "product": 1,
+                                                      "price": 1,
+                                                      "rank": 5},
+                              "rocket_part": {"components": {"rocket_control_unit": 1,
+                                                             "low_density_structure": 1},
+                                              "product": 1,
+                                              "price": 1,
+                                              "rank": 6},
+                              "space_module": {"components": {"rocket_part": 1,
+                                                              "solar_panel": 1},
+                                               "product": 1,
+                                               "price": 1000,
+                                               "rank": 7}
+                              }
 
         self.upgrade = {"prod_rate_copper": {"price": 1000,
                                              "prod_rate": 0.5,
@@ -122,6 +221,7 @@ class Factory():
         self.shop_choices = {"g": self.main_factory,
                              "u": self.shop_upgrade
                              }
+
 
     def main_factory(self):
         #   Update of factory values:
@@ -201,12 +301,83 @@ class Factory():
         print("Session ended.")
         return "Coward die in shame"
 
+    def check_prod_rate(self):
+        # check no issue in self.adv_ressource_prod_rate:
+        d_res = {res: 0 for res in ["copper", "iron"] + list(self.adv_ressource_prod_rate.keys())}
+        for key in self.adv_ressource_prod_rate.keys():
+            for res in self.adv_ressource_prod_rate[key].keys():
+                d_res[res] += self.adv_ressource_prod_rate[key][res]
+        error_rate = []
+        for res in d_res.keys():
+            if d_res[res] > 1:
+                error_rate.append(res)
+        print("Error in Production rate of:", ", ".join(error_rate))
+        # return True si aucun res n'a d'erreur
+        return not error_rate
+
     def update(self):
+        self.update_ressource()
+        self.update_adv_ressource()
+
+    def update_ressource(self):
         time_now = datetime.now()
         delta = (time_now - self.last_time).total_seconds()
         self.last_time = time_now
-        for r in self.ressource.keys():
+
+        # Update of Iron and Copper:
+        for r in ["copper", "iron"]:  # self.ressource.keys():
             self.ressource[r]["total"] += delta * self.ressource[r]["prod_rate"]
+
+    def update_adv_ressource(self):
+        # 1 get max rank for while loop
+        to_update_ressource = copy.deepcopy(self.ressource)
+
+
+        # 2 dict of ressource per rank the player own
+        d_res = {}
+        for res in self.adv_ressource.keys():
+            if res in self.ressource.keys():
+                rank = int(self.adv_ressource[res]["rank"])
+                try:
+                    d_res[rank].append(res)
+                except KeyError:
+                    d_res[rank] = [res]
+
+        max_rank = max(d_res.keys())
+
+        # 2 pour chaque ressource de rank croissant
+        i = 0
+        while i <= max_rank:
+            for res in d_res[i]:
+                # pour chaque ressource d'un rank
+                # get which ressource it will use and how much:
+                all_res_pos = []
+                comps = self.adv_ressource_prod_rate[res].keys()
+
+                for comp in comps:
+                    prod_rate = self.adv_ressource_prod_rate[res][comp]
+                    qt_comp = self.ressource[comp]["total"]
+
+                    # quantity of a comp allocated to the craft of res
+                    qt_available = prod_rate*qt_comp
+                    # how many comp is required to produce 1 res
+                    comp_req = self.adv_ressource[res]["components"][comp]
+                    # res_pos = nb of res possible to craft according to this comp
+                    res_pos = int(qt_available / comp_req)
+                    all_res_pos.append(res_pos)
+                # minimum of all res_pos is how much we can craft
+                min_craft = min(all_res_pos)
+                # how much of each craft output
+                product = self.adv_ressource[res]["product"]
+                self.ressource[res]["total"] += min_craft * product
+                to_update_ressource[res]["total"] += min_craft * product
+                for comp in comps:
+                    to_update_ressource[comp]["total"] -= min_craft * self.adv_ressource[res]["components"][comp]
+                # add the amount it will produce:
+            i += 1
+        # end
+        self.ressource = to_update_ressource
+
 
     def print_report(self):
         """
@@ -216,13 +387,24 @@ class Factory():
         x.field_names = ["Ressource", "Production Rate",
                          "Total Amount", "Selling Price", "Buying Price"]
 
-        for ressource in self.ressource.keys():
+        for ressource in ['iron', 'copper']:
             x.add_row([ressource.capitalize(),
                        self.ressource[ressource]["prod_rate"],
                        round(self.ressource[ressource]["total"], 2),
                        self.ressource[ressource]["price"],
                        self.ressource[ressource]["buy_price"]
                        ])
+        # adv
+        for ressource in self.ressource.keys():
+            if ressource in ['copper', "iron"]:
+                continue
+            x.add_row([ressource.capitalize(),
+                       self.ressource[ressource]["prod_rate"],
+                       round(self.ressource[ressource]["total"], 2),
+                       self.ressource[ressource]["price"],
+                       self.ressource[ressource]["buy_price"]
+                       ])
+
         len_mon = len(str(self.money))
         print("",
               "+--------" + "-"*len_mon + "-+\n"
@@ -349,5 +531,5 @@ class Factory():
 
 if __name__ == "__main__":
     f = Factory()
-    f.auto_load()
+    # f.auto_load()
     f.main_factory()

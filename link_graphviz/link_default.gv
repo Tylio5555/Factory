@@ -1,17 +1,35 @@
 digraph default {
 	node [color=lightblue2 style=filled]
 	subgraph iron {
-		node [color=lightgrey rank=min style=filled]
+		node [color=lightgrey style=filled]
 		iron [shape=box]
 	}
 	subgraph copper {
-		node [color=antiquewhite rank=min style=filled]
+		node [color=antiquewhite style=filled]
 		copper [shape=box]
 	}
 	copper -> copper_plate [label=" 1"]
 	copper_plate -> copper_cable [label=" 1"]
 	iron -> iron_plate [label=" 1"]
+	iron_plate -> steel [label=" 1"]
 	iron_plate -> iron_gear_wheel [label=" 1"]
 	iron_plate -> circuit [label=" 1"]
 	copper_cable -> circuit [label=" 1"]
+	circuit -> adv_circuit [label=" 1"]
+	copper_cable -> adv_circuit [label=" 1"]
+	steel -> adv_circuit [label=" 1"]
+	copper_plate -> solar_panel [label=" 1"]
+	circuit -> solar_panel [label=" 1"]
+	copper_plate -> low_density_structure [label=" 1"]
+	steel -> low_density_structure [label=" 1"]
+	circuit -> processing_unit [label=" 1"]
+	adv_circuit -> processing_unit [label=" 1"]
+	circuit -> speed_module [label=" 1"]
+	iron_gear_wheel -> speed_module [label=" 1"]
+	processing_unit -> rocket_control_unit [label=" 1"]
+	speed_module -> rocket_control_unit [label=" 1"]
+	rocket_control_unit -> rocket_part [label=" 1"]
+	low_density_structure -> rocket_part [label=" 1"]
+	rocket_part -> space_module [label=" 1"]
+	solar_panel -> space_module [label=" 1"]
 }
