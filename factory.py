@@ -71,26 +71,8 @@ def value_function(x, n=1.25, a=1, b=0):
    ╩  ╩ ╩╚═╝ ╩ ╚═╝╩╚═ ╩
 
 """
-
-
-class Factory():
-    """
-    As the director of the Factory you will be given report
-    upon which you will have to make decision for the future.
-    """
-    def __init__(self):
-        self.money = 1000
-        self.employees = 10
-        self.last_time = datetime.now()
-
-        self.ressource = {"copper": {"prod_rate": 0.5,
-                                     "total": 10,
-                                     "price": 1,
-                                     "buy_price": 10},
-                          "iron": {"prod_rate": 0.5,
-                                   "total": 10,
-                                   "price": 1,
-                                   "buy_price": 10},
+"""
+                          ,
                           "copper_plate": {"prod_rate": 0,
                                            "total": 0,
                                            "price": 10,
@@ -112,6 +94,27 @@ class Factory():
                                               "price": 10,
                                               "buy_price": 100}
                           }
+"""
+
+class Factory():
+    """
+    As the director of the Factory you will be given report
+    upon which you will have to make decision for the future.
+    """
+    def __init__(self):
+        self.money = 1000
+        self.employees = 10
+        self.last_time = datetime.now()
+
+        self.ressource = {"copper": {"prod_rate": 1,
+                                     "total": 10,
+                                     "price": 1,
+                                     "buy_price": 10},
+                          "iron": {"prod_rate": 1,
+                                   "total": 10,
+                                   "price": 1,
+                                   "buy_price": 10}
+                          }
 
         # prod rate st by user
         self.adv_ressource_prod_rate = {"copper_plate": {"copper": 1},
@@ -119,14 +122,15 @@ class Factory():
                                         "copper_cable": {"copper_plate": 1},
                                         "circuit": {"copper_cable": 1,
                                                     "iron_plate": 0.5},
-                                        "iron_gear_wheel": {"iron_plate": 0.5}
+                                        "iron_gear_wheel": {"iron_plate": 0.2},
+                                        "steel": {"iron_plate": 0.3}
                                         }
 
         # dict of fact
         # load of json / yml file instead?
-        self.adv_ressource = {"copper_plate": {"components": {"copper": 5},
+        self.adv_ressource = {"copper_plate": {"components": {"copper": 2},
                                                "product": 1,
-                                               "price": 1,
+                                               "price": 4,
                                                "rank": 0},
 
                               "copper_cable": {"components": {"copper_plate": 1},
@@ -134,43 +138,43 @@ class Factory():
                                                "price": 1,
                                                "rank": 1},
 
-                              "iron_plate": {"components": {"iron": 5},
+                              "iron_plate": {"components": {"iron": 2},
                                              "product": 1,
                                              "price": 3,
                                              "rank": 1},
 
-                              "steel": {"components": {"iron_plate": 1},
+                              "steel": {"components": {"iron_plate": 5},
                                         "product": 1,
                                         "price": 1,
                                         "rank": 2},
 
                               "iron_gear_wheel": {"components": {"iron_plate": 1},
                                                   "product": 5,
-                                                  "price": 1,
+                                                  "price": 1.5,
                                                   "rank": 2},
 
-                              "circuit": {"components": {"iron_plate": 1,
-                                                         "copper_cable": 1},
+                              "circuit": {"components": {"iron_plate": 5,
+                                                         "copper_cable": 10},
                                           "product": 1,
-                                          "price": 1,
+                                          "price": 50,
                                           "rank": 2},
 
                               "adv_circuit": {"components": {"circuit": 1,
-                                                             "copper_cable": 1,
-                                                             "steel": 1},
+                                                             "copper_cable": 5,
+                                                             "steel": 5},
                                               "product": 1,
-                                              "price": 1,
+                                              "price": 100,
                                               "rank": 3},
 
-                              "solar_panel": {"components": {"copper_plate": 1,
-                                                             "circuit": 1},
+                              "solar_panel": {"components": {"copper_plate": 10,
+                                                             "circuit": 5},
                                               "product": 1,
-                                              "price": 1,
+                                              "price": 100,
                                               "rank": 3},
                               "low_density_structure": {"components": {"copper_plate": 1,
                                                                        "steel": 1},
                                                         "product": 1,
-                                                        "price": 1,
+                                                        "price": 5,
                                                         "rank": 3},
 
                               "processing_unit": {"components": {"circuit": 1,
@@ -219,9 +223,10 @@ class Factory():
                                      "q": self.gw_quit}
 
         self.shop_choices = {"g": self.main_factory,
-                             "u": self.shop_upgrade
+                             "u": self.shop_upgrade,
+                             "r": self.shop_new_ressource,
+                             "p": self.print_report
                              }
-
 
     def main_factory(self):
         #   Update of factory values:
@@ -342,9 +347,10 @@ class Factory():
                     d_res[rank].append(res)
                 except KeyError:
                     d_res[rank] = [res]
-
-        max_rank = max(d_res.keys())
-
+        try:
+            max_rank = max(d_res.keys())
+        except ValueError:
+            return None
         # 2 pour chaque ressource de rank croissant
         i = 0
         while i <= max_rank:
@@ -406,7 +412,7 @@ class Factory():
                        ])
 
         len_mon = len(str(self.money))
-        print("",
+        print("", "",
               "+--------" + "-"*len_mon + "-+\n"
               "| Money: " + str(self.money) + " |")
         print(x)
@@ -464,19 +470,16 @@ class Factory():
               "for a total of: " + str(loss))
         return self.main_factory()
 
-    def craft_order(self):
-        pass
-
     def shop(self):
         """
         buy new ressource to craft
-        buy new machine to upgrade prod
+        buy new machine to upgrade prod rate
         """
         txt = ["", "",
                "You're in the Shop.",
                "(P)rint Report",
                "(U)pgrade a production rate (copper or iron)",
-               "(B)uy a new ressource",
+               "Buy a new (R)essource",
                "(H)ire     (F)ire",
                "(G)o back"
                ]
@@ -485,6 +488,9 @@ class Factory():
         print_list(txt)
 
         action = req_input(self.shop_choices)
+        if action == "p":
+            self.print_report()
+            return self.shop()
         return self.shop_choices[action]()
 
     def shop_upgrade(self):
@@ -522,11 +528,39 @@ class Factory():
         return self.main_factory()
 
     def shop_new_ressource(self):
-        pass
+        # 1 get all ressource which components are all in self.ressource:
+        products = self.ressource.keys()
+        new_pos_res = []
+        for res in self.adv_ressource.keys():
+            if res in products:
+                continue
+            # if all components of res in are producted in self.ressource
+            if all([comp in products for comp in self.adv_ressource[res]["components"].keys()]):
+                new_pos_res.append(res)
 
-    def add_ressource(self, ):
-        pass
+        if new_pos_res:
+            txt = ["Possible ressource to buy:"]
+            [txt.append("  - "+elt) for elt in new_pos_res]
+            txt.append("(G)o back to shop")
+            print_list(txt)
+            action = req_input(new_pos_res + ["g"])
+            if action == "g":
+                return self.shop()
+            else:
+                self.add_ressource(action)
+                return self.shop()
+        else:
+            print("No other ressource are available to add to production.", "")
+            return self.shop()
+
+    def add_ressource(self, res_name):
         # res_name = 2
+        if res_name in self.ressource.keys():
+            print("ressource already owned.")
+        self.ressource[res_name] = {"prod_rate": 0,
+                                     "total": 0,
+                                     "price": self.adv_ressource[res_name]["price"],
+                                     "buy_price": self.adv_ressource[res_name]["price"]*10}
 
 
 if __name__ == "__main__":
