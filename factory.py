@@ -72,6 +72,15 @@ def value_function(x, n=1.25, a=1, b=0):
 
 """
 """
+
+self.adv_ressource_prod_rate = {"copper_plate": {"copper": 1},
+                                        "iron_plate": {"iron": 1},
+                                        "copper_cable": {"copper_plate": 1},
+                                        "circuit": {"copper_cable": 1,
+                                                    "iron_plate": 0.5},
+                                        "iron_gear_wheel": {"iron_plate": 0.2},
+                                        "steel": {"iron_plate": 0.3}
+                                        }
                           ,
                           "copper_plate": {"prod_rate": 0,
                                            "total": 0,
@@ -117,15 +126,8 @@ class Factory():
                           }
 
         # prod rate st by user
-        self.adv_ressource_prod_rate = {"copper_plate": {"copper": 1},
-                                        "iron_plate": {"iron": 1},
-                                        "copper_cable": {"copper_plate": 1},
-                                        "circuit": {"copper_cable": 1,
-                                                    "iron_plate": 0.5},
-                                        "iron_gear_wheel": {"iron_plate": 0.2},
-                                        "steel": {"iron_plate": 0.3}
-                                        }
 
+        self.adv_ressource_prod_rate = {}
         # dict of fact
         # load of json / yml file instead?
         self.adv_ressource = {"copper_plate": {"components": {"copper": 2},
@@ -177,30 +179,30 @@ class Factory():
                                                         "price": 5,
                                                         "rank": 3},
 
-                              "processing_unit": {"components": {"circuit": 1,
-                                                                 "adv_circuit": 1},
+                              "processing_unit": {"components": {"circuit": 5,
+                                                                 "adv_circuit": 3},
                                                   "product": 1,
-                                                  "price": 1,
+                                                  "price": 250,
                                                   "rank": 4},
-                              "speed_module": {"components": {"circuit": 1,
-                                                              "iron_gear_wheel": 1},
+                              "speed_module": {"components": {"circuit": 10,
+                                                              "iron_gear_wheel": 15},
                                                "product": 1,
-                                               "price": 1,
+                                               "price": 750,
                                                "rank": 3},
-                              "rocket_control_unit": {"components": {"processing_unit": 1,
-                                                                     "speed_module": 1},
+                              "rocket_control_unit": {"components": {"processing_unit": 10,
+                                                                     "speed_module": 10},
                                                       "product": 1,
-                                                      "price": 1,
+                                                      "price": 5500,
                                                       "rank": 5},
                               "rocket_part": {"components": {"rocket_control_unit": 1,
-                                                             "low_density_structure": 1},
+                                                             "low_density_structure": 100},
                                               "product": 1,
-                                              "price": 1,
+                                              "price": 8500,
                                               "rank": 6},
                               "space_module": {"components": {"rocket_part": 1,
-                                                              "solar_panel": 1},
+                                                              "solar_panel": 50},
                                                "product": 1,
-                                               "price": 1000,
+                                               "price": 10000,
                                                "rank": 7}
                               }
 
@@ -217,6 +219,7 @@ class Factory():
         self.main_factory_choices = {"p": self.print_report,
                                      "b": self.buy_order,
                                      "s": self.shop,
+                                     "c": self.set_prod_rate,
                                      "se": self.selling_order,
                                      "sa": self.save_factory,
                                      "l": self.load_factory,
@@ -237,6 +240,7 @@ class Factory():
                "You're in your office, what do you want to do?",
                "(P)rint Report",
                "(B)uy      (Se)ll",
+               "(C)hange production rate",
                "(S)hop",
                "(Sa)ve     (L)oad",
                "(Q)uit"]
@@ -320,6 +324,21 @@ class Factory():
         # return True si aucun res n'a d'erreur
         return not error_rate
 
+    def set_prod_rate(self):
+        txt = ["Choose which ressource you like to change its prod rate:"]
+        print(self.adv_ressource_prod_rate)
+        l_res = list(self.adv_ressource_prod_rate.keys())
+        print_list(txt + l_res + ["(G)o back"])
+
+        action = req_input(l_res + ["g"])
+        if action == "g":
+            return self.main_factory()
+        else:
+            for prod in self.adv_ressource_prod_rate[action].keys():
+                pr_f = float(input("Enter the prod ratio (Ex: 0.2) for " + prod + ": "))
+                self.adv_ressource_prod_rate[action][prod] = pr_f
+        return self.set_prod_rate()
+
     def update(self):
         self.update_ressource()
         self.update_adv_ressource()
@@ -354,32 +373,35 @@ class Factory():
         # 2 pour chaque ressource de rank croissant
         i = 0
         while i <= max_rank:
-            for res in d_res[i]:
-                # pour chaque ressource d'un rank
-                # get which ressource it will use and how much:
-                all_res_pos = []
-                comps = self.adv_ressource_prod_rate[res].keys()
+            try:
+                for res in d_res[i]:
+                    # pour chaque ressource d'un rank
+                    # get which ressource it will use and how much:
+                    all_res_pos = []
+                    comps = self.adv_ressource_prod_rate[res].keys()
 
-                for comp in comps:
-                    prod_rate = self.adv_ressource_prod_rate[res][comp]
-                    qt_comp = self.ressource[comp]["total"]
+                    for comp in comps:
+                        prod_rate = self.adv_ressource_prod_rate[res][comp]                   # change in comp and res: [comp][res]
+                        qt_comp = self.ressource[comp]["total"]
 
-                    # quantity of a comp allocated to the craft of res
-                    qt_available = prod_rate*qt_comp
-                    # how many comp is required to produce 1 res
-                    comp_req = self.adv_ressource[res]["components"][comp]
-                    # res_pos = nb of res possible to craft according to this comp
-                    res_pos = int(qt_available / comp_req)
-                    all_res_pos.append(res_pos)
-                # minimum of all res_pos is how much we can craft
-                min_craft = min(all_res_pos)
-                # how much of each craft output
-                product = self.adv_ressource[res]["product"]
-                self.ressource[res]["total"] += min_craft * product
-                to_update_ressource[res]["total"] += min_craft * product
-                for comp in comps:
-                    to_update_ressource[comp]["total"] -= min_craft * self.adv_ressource[res]["components"][comp]
-                # add the amount it will produce:
+                        # quantity of a comp allocated to the craft of res
+                        qt_available = prod_rate*qt_comp
+                        # how many comp is required to produce 1 res
+                        comp_req = self.adv_ressource[res]["components"][comp]                # change in comp and res: [comp][res]
+                        # res_pos = nb of res possible to craft according to this comp
+                        res_pos = int(qt_available / comp_req)
+                        all_res_pos.append(res_pos)
+                    # minimum of all res_pos is how much we can craft
+                    min_craft = min(all_res_pos)
+                    # how much of each craft output
+                    product = self.adv_ressource[res]["product"]
+                    self.ressource[res]["total"] += min_craft * product
+                    to_update_ressource[res]["total"] += min_craft * product
+                    for comp in comps:
+                        to_update_ressource[comp]["total"] -= min_craft * self.adv_ressource[res]["components"][comp]
+                    # add the amount it will produce:
+            except KeyError:
+                pass
             i += 1
         # end
         self.ressource = to_update_ressource
@@ -477,7 +499,6 @@ class Factory():
         """
         txt = ["", "",
                "You're in the Shop.",
-               "(P)rint Report",
                "(U)pgrade a production rate (copper or iron)",
                "Buy a new (R)essource",
                "(H)ire     (F)ire",
@@ -557,10 +578,18 @@ class Factory():
         # res_name = 2
         if res_name in self.ressource.keys():
             print("ressource already owned.")
+            return None
         self.ressource[res_name] = {"prod_rate": 0,
-                                     "total": 0,
-                                     "price": self.adv_ressource[res_name]["price"],
-                                     "buy_price": self.adv_ressource[res_name]["price"]*10}
+                                    "total": 0,
+                                    "price": self.adv_ressource[res_name]["price"],
+                                    "buy_price": self.adv_ressource[res_name]["price"]*10}
+        # pour chaque composant de res
+        for comp in self.adv_ressource[res_name]["components"].keys():
+            if comp not in self.adv_ressource_prod_rate:
+                self.adv_ressource_prod_rate[comp] = {}
+            if res_name in self.adv_ressource_prod_rate[comp]:
+                continue
+            self.adv_ressource_prod_rate[comp][res_name] = 1
 
 
 if __name__ == "__main__":
