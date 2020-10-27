@@ -12,6 +12,7 @@ import pickle
 import copy
 # Vol honteux de script pour pas faire dl de module
 # from prettytable import PrettyTable
+import pprint
 from prettytable import PrettyTable
 
 
@@ -71,39 +72,7 @@ def value_function(x, n=1.25, a=1, b=0):
    ╩  ╩ ╩╚═╝ ╩ ╚═╝╩╚═ ╩
 
 """
-"""
 
-self.adv_ressource_prod_rate = {"copper_plate": {"copper": 1},
-                                        "iron_plate": {"iron": 1},
-                                        "copper_cable": {"copper_plate": 1},
-                                        "circuit": {"copper_cable": 1,
-                                                    "iron_plate": 0.5},
-                                        "iron_gear_wheel": {"iron_plate": 0.2},
-                                        "steel": {"iron_plate": 0.3}
-                                        }
-                          ,
-                          "copper_plate": {"prod_rate": 0,
-                                           "total": 0,
-                                           "price": 10,
-                                           "buy_price": 100},
-                          "iron_plate": {"prod_rate": 0,
-                                         "total": 0,
-                                         "price": 10,
-                                         "buy_price": 100},
-                          "copper_cable": {"prod_rate": 0,
-                                           "total": 0,
-                                           "price": 20,
-                                           "buy_price": 10},
-                          "circuit": {"prod_rate": 0,
-                                      "total": 0,
-                                      "price": 100,
-                                      "buy_price": 1000},
-                          "iron_gear_wheel": {"prod_rate": 0,
-                                              "total": 0,
-                                              "price": 10,
-                                              "buy_price": 100}
-                          }
-"""
 
 class Factory():
     """
@@ -111,7 +80,7 @@ class Factory():
     upon which you will have to make decision for the future.
     """
     def __init__(self):
-        self.money = 1000
+        self.money = 100000
         self.employees = 10
         self.last_time = datetime.now()
 
@@ -250,6 +219,12 @@ class Factory():
                              "p": self.print_report
                              }
 
+    def load_adv_ressource_json(self):
+        import json
+        with open('adv_ressource.json') as fp:  # raise JSONDecodeError
+            adv = json.load(fp)
+            print(adv)
+
     def main_factory(self):
         #   Update of factory values:
         self.update()
@@ -302,8 +277,10 @@ class Factory():
         else:
             savename = input("Choose a savename: ")
         data_dict = {"money": self.money,
+                     "last_time": self.last_time,
                      "ressource": self.ressource,
-                     "upgrade": self.upgrade
+                     "upgrade": self.upgrade,
+                     "adv_ressource_prod_rate": self.adv_ressource_prod_rate
                      }
         with open("saves/" + savename, "wb") as savefile:
             pickle.dump(data_dict,
@@ -345,8 +322,8 @@ class Factory():
 
     def set_prod_rate(self):
         txt = ["Choose which ressource you like to change its prod rate:"]
-        print(self.adv_ressource_prod_rate)
-        l_res = list(self.adv_ressource_prod_rate.keys())
+        pprint.pprint(self.adv_ressource_prod_rate)
+        l_res = [" - " + elt for elt in self.adv_ressource_prod_rate.keys()]
         print_list(txt + l_res + ["(G)o back"])
 
         action = req_input(l_res + ["g"])
@@ -369,14 +346,13 @@ class Factory():
 
         # Update of Iron and Copper:
         for r in ["copper", "iron"]:  # self.ressource.keys():
-            self.ressource[r]["total"] += delta * self.ressource[r]["prod_rate"]
+            self.ressource[r]["total"] += delta*self.ressource[r]["prod_rate"]
 
     def update_adv_ressource(self):
-        # 1 get max rank for while loop
+        # 1 copy of ressource values
         to_update_ressource = copy.deepcopy(self.ressource)
 
-
-        # 2 dict of ressource per rank the player own
+        # 2 dict of ressource per rank that the player own
         d_res = {}
         for res in self.adv_ressource.keys():
             if res in self.ressource.keys():
@@ -390,7 +366,8 @@ class Factory():
         except ValueError:
             print("value error")
             return None
-        # 2 pour chaque ressource de rank croissant
+
+        # 3 pour chaque ressource de rank croissant
         i = 0
         while i <= max_rank:
             try:
@@ -426,7 +403,6 @@ class Factory():
         # end
         self.ressource = to_update_ressource
 
-
     def print_report(self):
         """
         Use of PrettyTable module.
@@ -442,12 +418,12 @@ class Factory():
                        self.ressource[ressource]["price"],
                        self.ressource[ressource]["buy_price"]
                        ])
-        # adv
+        # only adv
         for ressource in self.ressource.keys():
             if ressource in ['copper', "iron"]:
                 continue
-            x.add_row([ressource.capitalize(),
-                       self.ressource[ressource]["prod_rate"],
+            x.add_row([" ".join(ressource.split("_")).capitalize(),
+                       "---",  # self.ressource[ressource]["prod_rate"],
                        round(self.ressource[ressource]["total"], 2),
                        self.ressource[ressource]["price"],
                        self.ressource[ressource]["buy_price"]
