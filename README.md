@@ -9,4 +9,4 @@ With your profit unlock new recipee or augment the rate at which you get iron an
 
 The recipee get more and more complicated as you will progress in the game.
 (see the help graph: linkgraphviz/link_default.gv).
-![link](linkgraphviz/link_default.gv)
+![link](https://github.com/Tylio5555/Factory/blob/main/link_graphviz/link_default.gv.pdf)
