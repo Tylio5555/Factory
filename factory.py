@@ -133,77 +133,96 @@ class Factory():
         self.adv_ressource = {"copper_plate": {"components": {"copper": 2},
                                                "product": 1,
                                                "price": 4,
-                                               "rank": 0},
+                                               "rank": 0,
+                                               "unlock_price": 2000},
 
                               "copper_cable": {"components": {"copper_plate": 1},
                                                "product": 5,
                                                "price": 1,
-                                               "rank": 1},
+                                               "rank": 1,
+                                               "unlock_price": 2000},
 
                               "iron_plate": {"components": {"iron": 2},
                                              "product": 1,
                                              "price": 3,
-                                             "rank": 1},
+                                             "rank": 1,
+                                             "unlock_price": 2000},
 
                               "steel": {"components": {"iron_plate": 5},
                                         "product": 1,
                                         "price": 1,
-                                        "rank": 2},
+                                        "rank": 2,
+                                        "unlock_price": 2000},
 
                               "iron_gear_wheel": {"components": {"iron_plate": 1},
                                                   "product": 5,
                                                   "price": 1.5,
-                                                  "rank": 2},
+                                                  "rank": 2,
+                                                  "unlock_price": 2000},
 
                               "circuit": {"components": {"iron_plate": 5,
                                                          "copper_cable": 10},
                                           "product": 1,
                                           "price": 50,
-                                          "rank": 2},
+                                          "rank": 2,
+                                          "unlock_price": 2000},
 
                               "adv_circuit": {"components": {"circuit": 1,
                                                              "copper_cable": 5,
                                                              "steel": 5},
                                               "product": 1,
                                               "price": 100,
-                                              "rank": 3},
+                                              "rank": 3,
+                                              "unlock_price": 2000},
 
                               "solar_panel": {"components": {"copper_plate": 10,
                                                              "circuit": 5},
                                               "product": 1,
                                               "price": 100,
-                                              "rank": 3},
+                                              "rank": 3,
+                                              "unlock_price": 2000},
+
                               "low_density_structure": {"components": {"copper_plate": 1,
                                                                        "steel": 1},
                                                         "product": 1,
                                                         "price": 5,
-                                                        "rank": 3},
+                                                        "rank": 3,
+                                                        "unlock_price": 2000},
 
                               "processing_unit": {"components": {"circuit": 5,
                                                                  "adv_circuit": 3},
                                                   "product": 1,
                                                   "price": 250,
-                                                  "rank": 4},
+                                                  "rank": 4,
+                                                  "unlock_price": 2000},
+
                               "speed_module": {"components": {"circuit": 10,
                                                               "iron_gear_wheel": 15},
                                                "product": 1,
                                                "price": 750,
-                                               "rank": 3},
+                                               "rank": 3,
+                                               "unlock_price": 2000},
+
                               "rocket_control_unit": {"components": {"processing_unit": 10,
                                                                      "speed_module": 10},
                                                       "product": 1,
                                                       "price": 5500,
-                                                      "rank": 5},
+                                                      "rank": 5,
+                                                      "unlock_price": 2000},
+
                               "rocket_part": {"components": {"rocket_control_unit": 1,
                                                              "low_density_structure": 100},
                                               "product": 1,
                                               "price": 8500,
-                                              "rank": 6},
+                                              "rank": 6,
+                                              "unlock_price": 2000},
+
                               "space_module": {"components": {"rocket_part": 1,
                                                               "solar_panel": 50},
                                                "product": 1,
                                                "price": 10000,
-                                               "rank": 7}
+                                               "rank": 7,
+                                               "unlock_price": 2000}
                               }
 
         self.upgrade = {"prod_rate_copper": {"price": 1000,
@@ -369,6 +388,7 @@ class Factory():
         try:
             max_rank = max(d_res.keys())
         except ValueError:
+            print("value error")
             return None
         # 2 pour chaque ressource de rank croissant
         i = 0
@@ -378,16 +398,16 @@ class Factory():
                     # pour chaque ressource d'un rank
                     # get which ressource it will use and how much:
                     all_res_pos = []
-                    comps = self.adv_ressource_prod_rate[res].keys()
+                    comps = self.adv_ressource[res]["components"].keys()
 
                     for comp in comps:
-                        prod_rate = self.adv_ressource_prod_rate[res][comp]                   # change in comp and res: [comp][res]
+                        prod_rate = self.adv_ressource_prod_rate[comp][res]
                         qt_comp = self.ressource[comp]["total"]
 
                         # quantity of a comp allocated to the craft of res
                         qt_available = prod_rate*qt_comp
                         # how many comp is required to produce 1 res
-                        comp_req = self.adv_ressource[res]["components"][comp]                # change in comp and res: [comp][res]
+                        comp_req = self.adv_ressource[res]["components"][comp]
                         # res_pos = nb of res possible to craft according to this comp
                         res_pos = int(qt_available / comp_req)
                         all_res_pos.append(res_pos)
@@ -399,9 +419,9 @@ class Factory():
                     to_update_ressource[res]["total"] += min_craft * product
                     for comp in comps:
                         to_update_ressource[comp]["total"] -= min_craft * self.adv_ressource[res]["components"][comp]
-                    # add the amount it will produce:
+
             except KeyError:
-                pass
+                print("keyerror")
             i += 1
         # end
         self.ressource = to_update_ressource
@@ -412,7 +432,7 @@ class Factory():
         Use of PrettyTable module.
         """
         x = PrettyTable()
-        x.field_names = ["Ressource", "Production Rate",
+        x.field_names = ["Ressource", "Prod Rate",
                          "Total Amount", "Selling Price", "Buying Price"]
 
         for ressource in ['iron', 'copper']:
@@ -434,8 +454,8 @@ class Factory():
                        ])
 
         len_mon = len(str(self.money))
-        print("", "",
-              "+--------" + "-"*len_mon + "-+\n"
+        print("", "")
+        print("+--------" + "-"*len_mon + "-+\n"
               "| Money: " + str(self.money) + " |")
         print(x)
 
@@ -459,7 +479,7 @@ class Factory():
         self.ressource[res_input]["total"] -= res_amount
 
         print("You sold " + str(res_amount) + " " + res_input + " at " +
-              str(self.ressource[res_input]["price"]) + " per unit"
+              str(self.ressource[res_input]["price"]) + " per unit "
               "for a total of: " + str(profit))
         return self.main_factory()
 
@@ -527,6 +547,9 @@ class Factory():
                        round(value_function(self.upgrade["prod_rate_" + res]["nb_upgrade_done"], b=1000), 1)
 
                        ])
+        len_mon = len(str(self.money))
+        print("+--------" + "-"*len_mon + "-+\n"
+              "| Money: " + str(self.money) + " |")
         print(x)
 
         action = req_input(["copper", "iron", "g"])
@@ -560,15 +583,30 @@ class Factory():
                 new_pos_res.append(res)
 
         if new_pos_res:
-            txt = ["Possible ressource to buy:"]
-            [txt.append("  - "+elt) for elt in new_pos_res]
-            txt.append("(G)o back to shop")
-            print_list(txt)
+            x = PrettyTable()
+            x.field_names = ["Name", "ressource used", "Rank", "Price"]
+            for res in new_pos_res:
+                x.add_row([res,
+                           ", ".join(self.adv_ressource[res]["components"].keys()),
+                           self.adv_ressource[res]["rank"],
+                           self.adv_ressource[res]["unlock_price"]
+                           ])
+            print("Possible ressource to buy:")
+            len_mon = len(str(self.money))
+            print("+--------" + "-"*len_mon + "-+\n"
+                  "| Money: " + str(self.money) + " |")
+            print(x)
+            print("(G)o back to shop")
+
             action = req_input(new_pos_res + ["g"])
             if action == "g":
                 return self.shop()
             else:
-                self.add_ressource(action)
+                if self.money > self.adv_ressource[action]["unlock_price"]:
+                    self.money -= self.adv_ressource[action]["unlock_price"]
+                    self.add_ressource(action)
+                else:
+                    print("You don't have money to unlock the production of " + action)
                 return self.shop()
         else:
             print("No other ressource are available to add to production.", "")
@@ -584,13 +622,18 @@ class Factory():
                                     "price": self.adv_ressource[res_name]["price"],
                                     "buy_price": self.adv_ressource[res_name]["price"]*10}
         # pour chaque composant de res
-        for comp in self.adv_ressource[res_name]["components"].keys():
-            if comp not in self.adv_ressource_prod_rate:
+        print("in")
+        components = self.adv_ressource[res_name]["components"].keys()
+        for comp in components:
+            print("  "+comp)
+            if comp not in self.adv_ressource_prod_rate.keys():
                 self.adv_ressource_prod_rate[comp] = {}
+            print("adv_ressource_prod_rate:",self.adv_ressource_prod_rate)
             if res_name in self.adv_ressource_prod_rate[comp]:
                 continue
-            self.adv_ressource_prod_rate[comp][res_name] = 1
-
+            else:
+                self.adv_ressource_prod_rate[comp][res_name] = round(1/len(components),1)
+        # need check adv_ressource_prod_rate
 
 if __name__ == "__main__":
     f = Factory()
