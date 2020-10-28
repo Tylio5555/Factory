@@ -6,7 +6,16 @@ Created on Fri Oct 23 13:50:10 2020
 @author: mickael
 """
 
+import sys
+sys.path.append("..")
+
+import json
+with open('../adv_ressource.json') as fp:  # raise JSONDecodeError
+    adv = json.load(fp)
+    print(adv)
+
 import graphviz
+
 adv_ressource = {"copper_plate": {"components": {"copper": 2},
                                    "product": 1,
                                    "price": 4,

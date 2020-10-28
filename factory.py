@@ -4,6 +4,11 @@
 Created on Thu Oct 22 14:38:47 2020
 
 @author: mickael
+
+TO DO:
+    fix time:
+        quand on reprend il n'y as pas l'addition du temps entre les 2
+        prix des updrage de production de copper et iron
 """
 
 import time
@@ -80,8 +85,7 @@ class Factory():
     upon which you will have to make decision for the future.
     """
     def __init__(self):
-        self.money = 100000
-        self.employees = 10
+        self.money = 0
         self.last_time = datetime.now()
 
         self.ressource = {"copper": {"prod_rate": 1,
@@ -94,105 +98,17 @@ class Factory():
                                    "buy_price": 10}
                           }
 
-        # prod rate st by user
-
         self.adv_ressource_prod_rate = {}
-        # dict of fact
-        # load of json / yml file instead?
+        self.adv_ressource = self.load_adv_ressource_json('adv_ressource.json')
+
+        """
+        for each adv ressource, ex:
         self.adv_ressource = {"copper_plate": {"components": {"copper": 2},
                                                "product": 1,
                                                "price": 4,
                                                "rank": 0,
                                                "unlock_price": 2000},
-
-                              "copper_cable": {"components": {"copper_plate": 1},
-                                               "product": 5,
-                                               "price": 1,
-                                               "rank": 1,
-                                               "unlock_price": 2000},
-
-                              "iron_plate": {"components": {"iron": 2},
-                                             "product": 1,
-                                             "price": 3,
-                                             "rank": 1,
-                                             "unlock_price": 2000},
-
-                              "steel": {"components": {"iron_plate": 5},
-                                        "product": 1,
-                                        "price": 1,
-                                        "rank": 2,
-                                        "unlock_price": 2000},
-
-                              "iron_gear_wheel": {"components": {"iron_plate": 1},
-                                                  "product": 5,
-                                                  "price": 1.5,
-                                                  "rank": 2,
-                                                  "unlock_price": 2000},
-
-                              "circuit": {"components": {"iron_plate": 5,
-                                                         "copper_cable": 10},
-                                          "product": 1,
-                                          "price": 50,
-                                          "rank": 2,
-                                          "unlock_price": 2000},
-
-                              "adv_circuit": {"components": {"circuit": 1,
-                                                             "copper_cable": 5,
-                                                             "steel": 5},
-                                              "product": 1,
-                                              "price": 100,
-                                              "rank": 3,
-                                              "unlock_price": 2000},
-
-                              "solar_panel": {"components": {"copper_plate": 10,
-                                                             "circuit": 5},
-                                              "product": 1,
-                                              "price": 100,
-                                              "rank": 3,
-                                              "unlock_price": 2000},
-
-                              "low_density_structure": {"components": {"copper_plate": 1,
-                                                                       "steel": 1},
-                                                        "product": 1,
-                                                        "price": 5,
-                                                        "rank": 3,
-                                                        "unlock_price": 2000},
-
-                              "processing_unit": {"components": {"circuit": 5,
-                                                                 "adv_circuit": 3},
-                                                  "product": 1,
-                                                  "price": 250,
-                                                  "rank": 4,
-                                                  "unlock_price": 2000},
-
-                              "speed_module": {"components": {"circuit": 10,
-                                                              "iron_gear_wheel": 15},
-                                               "product": 1,
-                                               "price": 750,
-                                               "rank": 3,
-                                               "unlock_price": 2000},
-
-                              "rocket_control_unit": {"components": {"processing_unit": 10,
-                                                                     "speed_module": 10},
-                                                      "product": 1,
-                                                      "price": 5500,
-                                                      "rank": 5,
-                                                      "unlock_price": 2000},
-
-                              "rocket_part": {"components": {"rocket_control_unit": 1,
-                                                             "low_density_structure": 100},
-                                              "product": 1,
-                                              "price": 8500,
-                                              "rank": 6,
-                                              "unlock_price": 2000},
-
-                              "space_module": {"components": {"rocket_part": 1,
-                                                              "solar_panel": 50},
-                                               "product": 1,
-                                               "price": 10000,
-                                               "rank": 7,
-                                               "unlock_price": 2000}
-                              }
+        """
 
         self.upgrade = {"prod_rate_copper": {"price": 1000,
                                              "prod_rate": 0.5,
@@ -216,14 +132,13 @@ class Factory():
         self.shop_choices = {"g": self.main_factory,
                              "u": self.shop_upgrade,
                              "r": self.shop_new_ressource,
-                             "p": self.print_report
-                             }
+                             "p": self.print_report}
 
-    def load_adv_ressource_json(self):
+    def load_adv_ressource_json(self, adv_res_f_name):
         import json
-        with open('adv_ressource.json') as fp:  # raise JSONDecodeError
-            adv = json.load(fp)
-            print(adv)
+        with open(adv_res_f_name) as arfn:
+            adv = json.load(arfn)
+        return adv
 
     def main_factory(self):
         #   Update of factory values:
@@ -307,6 +222,9 @@ class Factory():
         return "Coward die in shame"
 
     def check_prod_rate(self):
+        """
+        Coded but not used
+        """
         # check no issue in self.adv_ressource_prod_rate:
         d_res = {res: 0 for res in ["copper", "iron"] + list(self.adv_ressource_prod_rate.keys())}
         for key in self.adv_ressource_prod_rate.keys():
@@ -493,11 +411,10 @@ class Factory():
         buy new ressource to craft
         buy new machine to upgrade prod rate
         """
-        txt = ["", "",
+        txt = ["",
                "You're in the Shop.",
                "(U)pgrade a production rate (copper or iron)",
                "Buy a new (R)essource",
-               "(H)ire     (F)ire",
                "(G)o back"
                ]
 
@@ -539,6 +456,7 @@ class Factory():
 
         if self.money < upgrade_price:
             print("You don't have enough money.")
+            return self.main_factory()
 
         self.money -= upgrade_price
         self.ressource[action]["prod_rate"] += self.upgrade["prod_rate_" + action]["prod_rate"]
@@ -604,12 +522,13 @@ class Factory():
             print("  "+comp)
             if comp not in self.adv_ressource_prod_rate.keys():
                 self.adv_ressource_prod_rate[comp] = {}
-            print("adv_ressource_prod_rate:",self.adv_ressource_prod_rate)
+            print("adv_ressource_prod_rate:", self.adv_ressource_prod_rate)
             if res_name in self.adv_ressource_prod_rate[comp]:
                 continue
             else:
-                self.adv_ressource_prod_rate[comp][res_name] = round(1/len(components),1)
+                self.adv_ressource_prod_rate[comp][res_name] = round(1/len(components), 1)
         # need check adv_ressource_prod_rate
+
 
 if __name__ == "__main__":
     f = Factory()
